@@ -1,14 +1,27 @@
 import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
+import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
+import { ShopComponent } from './shop/shop.component';
+import { ToastrModule } from 'ngx-toastr';
+import { CarouselModule } from 'ngx-bootstrap/carousel';
+import { ModalModule } from 'ngx-bootstrap/modal';
+
+const config: SocketIoConfig = { url: 'http://localhost:4444', options: {} };
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    ShopComponent,
   ],
   imports: [
-    BrowserModule
+    BrowserAnimationsModule,
+    SocketIoModule.forRoot(config),
+    HttpClientModule,
+    ToastrModule.forRoot(),
+    CarouselModule.forRoot(),
+    ModalModule.forRoot()
   ],
   providers: [],
   bootstrap: [AppComponent]

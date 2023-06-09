@@ -1,1 +1,60 @@
 /* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+Double+Pica:ital@1&display=swap');
+@import url('http://fonts.cdnfonts.com/css/pokemon-fire-red'); 
+:root {
+    --pokedex-green: #AEBE41;
+}
+html,
+body {
+  height: 100%;
+}
+
+.title {
+    font-family: 'IM Fell Double Pica', serif;
+}
+.subtitle {
+    font-family: 'Pokemon Fire Red', cursive;
+}
+header {
+    height: 80px;
+}
+main {
+    height: calc(100% - 80px);
+}
+#pokedex {
+    max-height: 100%;
+    overflow-y: scroll;
+}
+.pokemon-card {
+    transition: all 0.5s ease;
+    background: radial-gradient(circle, rgba(2,0,36,1) 0%, rgba(0,212,255,1) 2%, rgba(252,96,31,1) 60%);
+}
+.pokemon-card:hover {
+    background: lightgoldenrodyellow ;
+}
+#pokebola {
+    animation: ease-in-out 1s infinite alternate-reverse shake;
+    cursor: pointer;
+}
+
+@keyframes shake {
+    0% {
+        transform: translate(0, 0);
+    }
+    33% {
+        transform: translate(5px, 0) rotate(5deg);
+    }
+    66% {
+        transform: translate(-5px, 0) rotate(-5deg);
+    }
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+.bg-pokedex {
+    background: var(--pokedex-green);
+}
+.border-pokedex {
+    border: 10px solid var(--pokedex-green) !important;
+}

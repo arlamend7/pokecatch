@@ -1,32 +1,131 @@
-import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { BsModalService } from 'ngx-bootstrap/modal';
+import { ToastrService } from 'ngx-toastr';
+import { timer } from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  template: `
-    <!--The content below is only a placeholder and can be replaced.-->
-    <div style="text-align:center" class="content">
-      <h1>
-        Welcome to {{title}}!
-      </h1>
-      <span style="display: block">{{ title }} app is running!</span>
-      <img width="300" alt="Angular Logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
-    </div>
-    <h2>Here are some links to help you start: </h2>
-    <ul>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/cli">CLI Documentation</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-      </li>
-    </ul>
-    
-  `,
+  templateUrl:'app.component.html', 
   styles: []
 })
-export class AppComponent {
-  title = 'pokebattle';
+export class AppComponent implements OnInit {
+  @ViewChild('pokedex') pokedex;
+  title = 'pokecatch';
+  pokemonsDex = [];
+  save = [];
+  selecionado = 0;
+  money = 0;
+
+  get pokemon() 
+  {
+    return this.mapPokemon(this.selecionado);
+  }
+  get pokemonCollection() {
+    
+    return  {
+      pokemons : this.mapPokemon(this.selecionado).filter(x => x.catch),
+      index : this.selecionado,
+      name : () => this.mapPokemon(this.selecionado)[0]?.name ?? '??????',
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  keyEvent(event: KeyboardEvent) {
+    event.preventDefault();
+    if (event.code === 'ArrowUp' && this.selecionado != 0 ) {
+      this.selecionado--;
+      this.pokedex.nativeElement.scrollTop -= 60;
+    }
+
+    if (event.code === 'ArrowDown' && this.selecionado != this.pokemonsDex.length - 1 ) {
+      this.selecionado++;
+      this.pokedex.nativeElement.scrollTop += 60;
+    }
+  }
+
+
+  constructor(private readonly http : HttpClient,
+              private readonly toastr : ToastrService,
+              private readonly modalService : BsModalService) {}
+
+  ngOnInit(): void {
+    this.getAllPokemon();
+  }
+
+  getAllPokemon() {
+    this.http.get('https://pokeapi.co/api/v2/pokemon/?limit=250').subscribe(x => {
+      this.pokemonsDex = x['results'];
+      console.log(this.pokemonsDex);
+    });
+  }
+
+  getPokemons() {
+    var number = Math.ceil(Math.random() * this.pokemonsDex.length);    
+    var pokemon = this.pokemonsDex[number];
+    console.log(number);
+    
+    return this.http.get('https://pokeapi.co/api/v2/pokemon/'+pokemon.name).subscribe(x => {
+      var isShiny = Math.random() >= 0.9;
+      var isCaught =Math.random() >= 0.5;
+      this.save.push({
+        index : x['id'] - 1,
+        name : x['name'],
+        types: x['types'].map(x => x.type.name),
+        sprites : x['sprites'],
+        catch : isCaught,
+        shiny : isShiny,
+        sprite : {
+          front : isShiny ? x['sprites']['front_shiny']  : x['sprites']['front_default'],
+          back : isShiny ? x['sprites']['back_shiny']  : x['sprites']['back_default'],
+        }
+      })
+      this.toastr.info('Pokemon ' + x['name'] + ' capturado!');
+    });
+  }
+
+  sell(pokemon, money){
+    this.modalRef.hide();
+    timer((Math.random() * 10) * 1000).subscribe(() => {
+      this.toastr.success('Pokemon ' + pokemon.name + ' vendido!');
+      this.money +=  money;
+    });
+  }
+  buy(pokemon, money) {
+    this.modalRef.hide();
+    timer((Math.random() * 10) * 1000).subscribe(() => {
+      this.toastr.success('Pokemon ' + pokemon.name + ' comprado!');
+      this.money -=  money;
+
+    });
+  }
+  mapPokemon(index) {
+    return this.save.filter(x => x.index == index);
+  }
+
+  catched(index) {
+    return this.mapPokemon(index).some(x => x.catch);
+  }
+
+  known(index) {
+    return this.mapPokemon(index).length > 0;
+  }
+
+  getTypes(index) {
+    return this.mapPokemon(index).sort((a)=> a.shiny ? -1 : 10)[0]?.types as string[];
+  }
+
+  getQuantidade(index){
+    return this.mapPokemon(index).filter(x => x.catch).length;
+  }
+
+  getSprite(index) {
+    return this.mapPokemon(index)[0]?.sprite?.front;
+  }
+  modalRef;
+  pokemonSelecionado;
+  showToSell(template, pokemonSelecionado) {
+    this.pokemonSelecionado = pokemonSelecionado;
+    this.modalRef = this.modalService.show(template);
+  }
 }

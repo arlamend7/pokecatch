@@ -1,0 +1,205 @@
+<header class="row bg-dark shadow p-1 m-0">
+    <div class="d-flex m-1 p-0 justify-content-between align-items-center">
+        <div class="d-flex flex-column">
+            <h4 class="m-0 p-0 title text-white">
+                <span>POKE </span>
+                <img src="assets/openedball.png" style="height: 30px; width: 22px; margin-top: -8px" />
+                <span>ATCH</span>
+            </h4>
+            <span class="badge p-1 align-self-start bg-danger subtitle">POKEMON FIRERED</span>
+        </div>
+        <div class="d-flex justify-content-center align-items-center gap-2">
+            <h5 class="text-white m-0 p-0">ARLAN MENDES</h5>
+
+            <div class="bg-secondary border rounded-circle" style="width: 50px; height: 50px"></div>
+        </div>
+    </div>
+</header>
+<main class="row m-0 p-0">
+    <section
+        class="col-xl-8 border-end border-dark border-5 d-flex flex-column justify-content-between"
+        style="
+            background: url('https://cdn.discordapp.com/attachments/947918615599009805/982297467255136298/background-pokeball.png');
+            background-size: cover;
+        "
+    >
+        <div class="d-flex flex-column justify-content-around align-items-center h-100">
+            <h1 class="subtitle m-2">
+                <span class="badge bg-dark rounded-pill">{{ pokemonCollection.name() | uppercase }}</span>
+            </h1>
+            <carousel
+                style="min-height: 250px"
+                [itemsPerSlide]="5"
+                [singleSlideOffset]="false"
+                [interval]="0"
+                [noWrap]="true"
+            >
+                <slide *ngFor="let pokemon of pokemonCollection.pokemons">
+                    <img
+                        class="pokemon-card p-2 m-2 border border-4 border-danger rounded-circle"
+                        (click)="showToSell(sellModal, pokemon)"
+                        [src]="pokemon.sprite.front"
+                        style="min-height: 200px"
+                    />
+                </slide>
+            </carousel>
+        </div>
+        <div class="row bg-dark shadow" style="height: 80px">
+            <div class="col-3 col-lg-2 d-flex justify-content-center align-items-center">
+                <h1 class="" style="margin-top: -70px">
+                    <span class="badge bg-warning text-dark">{{ money | currency }}</span>
+                </h1>
+            </div>
+            <div class="col"></div>
+            <div class="col-3 col-lg-2 d-flex justify-content-center">
+                <div class="rounded-circle bg-dark position-relative p-3 d-flex flex-column" style="margin-top: -40px">
+                    <img src="assets/coin no bkg.gif" style="max-height: 70px; max-width: 70px" />
+                    <span class="badge bg-warning m-auto position-absolute align-self-center p-1" style="bottom: 10%"
+                        >AUCTION</span
+                    >
+                </div>
+            </div>
+            <div class="col-5 col-lg-2 d-flex justify-content-center">
+                <div class="rounded-circle bg-dark p-3 position-relative d-flex flex-column" style="margin-top: -75px">
+                    <img
+                        id="pokebola"
+                        src="assets/pokebola.png"
+                        (click)="getPokemons()"
+                        style="height: 120px; width: 120px"
+                    />
+                    <span
+                        class="badge bg-danger m-auto position-absolute align-self-center"
+                        style="bottom: 10%; opacity: 0.4"
+                        >00:00:00</span
+                    >
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section #pokedex id="pokedex" class="col-xl-4 shadow p-0">
+        <div
+            class="row subtitle border-bottom d-flex align-items-center p-1"
+            *ngFor="let pokemonDex of pokemonsDex; index as i"
+            (click)="selecionado = i"
+            style="cursor: pointer; height: 60px"
+        >
+            <div class="col-1 d-flex justify-content-center">
+                <i *ngIf="i == selecionado" class="fa-solid fa-play"></i>
+            </div>
+            <div class="col-lg-1 col-3 p-0">
+                <h5 class="p-0 m-0" style="white-space: nowrap">No {{ i }}</h5>
+            </div>
+            <div class="col-lg-1 col-2 p-0">
+                <div class="d-flex justify-content-center align-items-center">
+                    <img *ngIf="known(i)" [src]="getSprite(i)" style="height: 45px; width: 45px" />
+                </div>
+            </div>
+            <div class="col-lg-2 col-5">
+                <h5 *ngIf="known(i)" class="m-0 p-0">{{ pokemonDex.name | uppercase }}</h5>
+                <h5 *ngIf="!known(i)" class="m-0 p-0">??????</h5>
+            </div>
+            <div class="col-3">
+                <span class="badge bg-secondary m-1" *ngFor="let type of getTypes(i)"> {{ type }}</span>
+            </div>
+            <div class="col-1">
+                <div class="d-flex gap-1 justify-content-center align-items-center position-relative">
+                    <img *ngIf="catched(i)" src="assets/pokebola.png" style="height: 20px; width: 20px" />
+                    <span *ngIf="catched(i)" class="badge bg-danger rounded-pill">{{ getQuantidade(i) }}</span>
+                </div>
+            </div>
+            <div class="col-3 d-flex justify-content-around">
+                <button
+                    class="btn btn-outline-success"
+                    [disabled]="!known(i)"
+                    (click)="selecionado = i;showToSell(buyModal, pokemonDex)"
+                >
+                    <i class="fa-solid fa-cart-shopping"></i>
+                </button>
+                <button
+                    class="btn btn-outline-warning"
+                    [disabled]="!catched(i)"
+                    (click)="selecionado = i;showToSell(sellModal, pokemonDex)"
+                >
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<ng-template #sellModal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">{{ pokemonSelecionado.name | uppercase }}</h4>
+        <button type="button" class="btn-close close pull-right" aria-label="Close" (click)="modalRef?.hide()">
+            <span aria-hidden="true" class="visually-hidden">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body d-flex justify-content-center flex-column align-items-center">
+        <img class="p-2 m-2" [src]="pokemon[0].sprite.front" style="min-height: 200px" />
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">$</span>
+            </div>
+            <input type="number" class="form-control" #input />
+        </div>
+        <div class="d-flex justify-content-end w-100 gap-2">
+            <button type="button" class="btn btn-danger" (click)="modalRef?.hide()">Cancelar</button>
+            <button type="button" class="btn btn-outline-warning" (click)="sell(pokemonSelecionado, +input.value)">Vender</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #buyModal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">{{ pokemonSelecionado.name | uppercase }}</h4>
+        <button type="button" class="btn-close close pull-right" aria-label="Close" (click)="modalRef?.hide()">
+            <span aria-hidden="true" class="visually-hidden">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body d-flex justify-content-center flex-column align-items-center">
+        <img class="p-2 m-2" [src]="pokemon[0].sprite.front" style="min-height: 200px" />
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">$</span>
+            </div>
+            <input type="number" class="form-control" #input2 />
+        </div>
+        <div class="d-flex justify-content-end w-100 gap-2">
+            <button type="button" class="btn btn-danger" (click)="modalRef?.hide()">Cancelar</button>
+            <button type="button" class="btn btn-outline-warning" (click)="buy(pokemonSelecionado, +input2.value)">Comprar</button>
+        </div>
+    </div>
+</ng-template>
+<ng-template>
+    <section class="col-1 d-flex flex-column border border-5 border-dark gap-3">
+        <h4 class="subtitle p-0 mt-2 text-center">Transactions</h4>
+        <div class="btn btn-outline-dark d-flex justify-content-center align-items-center" style="height: 75px">
+            <i class="fa fa-plus"></i>
+        </div>
+        <div class="btn btn-outline-dark d-flex justify-content-center align-items-center" style="height: 75px">
+            <i class="fa fa-plus"></i>
+        </div>
+        <div class="btn btn-outline-dark d-flex justify-content-center align-items-center" style="height: 75px">
+            <i class="fa fa-plus"></i>
+        </div>
+        <div class="btn btn-outline-dark d-flex justify-content-center align-items-center" style="height: 75px">
+            <i class="fa fa-plus"></i>
+        </div>
+        <div class="btn btn-outline-dark d-flex justify-content-center align-items-center" style="height: 75px">
+            <i class="fa fa-plus"></i>
+        </div>
+        <div class="btn btn-outline-dark d-flex justify-content-center align-items-center" style="height: 75px">
+            <i class="fa fa-plus"></i>
+        </div>
+        <div class="btn btn-outline-dark d-flex justify-content-center align-items-center" style="height: 75px">
+            <i class="fa fa-plus"></i>
+        </div>
+        <div class="btn btn-outline-dark d-flex justify-content-center align-items-center" style="height: 75px">
+            <i class="fa fa-plus"></i>
+        </div>
+        <div class="btn btn-outline-dark d-flex justify-content-center align-items-center" style="height: 75px">
+            <i class="fa fa-plus"></i>
+        </div>
+    </section>
+</ng-template>
